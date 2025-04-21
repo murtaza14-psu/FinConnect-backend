@@ -2,12 +2,12 @@ const bcrypt = require('bcryptjs');
 const db = require('../config/database');
 
 class User {
-    static async create({ name, email, password, role = 'developer' }) {
+    static async create({ name, email, password, role = 'Developer', subscribed = false }) {
         const hashedPassword = await bcrypt.hash(password, 10);
         return new Promise((resolve, reject) => {
             db.run(
-                'INSERT INTO users (name, email, password, role, subscription_status) VALUES (?, ?, ?, ?, ?)',
-                [name, email, hashedPassword, role, 'inactive'],
+                'INSERT INTO users (name, email, password, role, subscribed) VALUES (?, ?, ?, ?, ?)',
+                [name, email, hashedPassword, role, subscribed],
                 function(err) {
                     if (err) reject(err);
                     else resolve(this.lastID);
@@ -34,11 +34,11 @@ class User {
         });
     }
 
-    static async updateSubscriptionStatus(userId, status) {
+    static async updateSubscriptionStatus(userId, subscribed) {
         return new Promise((resolve, reject) => {
             db.run(
-                'UPDATE users SET subscription_status = ? WHERE id = ?',
-                [status, userId],
+                'UPDATE users SET subscribed = ? WHERE id = ?',
+                [subscribed, userId],
                 function(err) {
                     if (err) reject(err);
                     else resolve(this.changes);
@@ -49,7 +49,7 @@ class User {
 
     static async getAllUsers() {
         return new Promise((resolve, reject) => {
-            db.all('SELECT id, name, email, role, subscription_status FROM users', (err, rows) => {
+            db.all('SELECT id, name, email, role, subscribed FROM users', (err, rows) => {
                 if (err) reject(err);
                 else resolve(rows);
             });

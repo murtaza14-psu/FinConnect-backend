@@ -12,20 +12,20 @@ db.serialize(() => {
         name TEXT NOT NULL,
         email TEXT UNIQUE NOT NULL,
         password TEXT NOT NULL,
-        role TEXT NOT NULL,
-        subscription_status TEXT NOT NULL,
+        role TEXT NOT NULL CHECK (role IN ('Developer', 'Admin')),
+        subscribed BOOLEAN NOT NULL DEFAULT 0,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP
     )`);
 
     // Transactions table
     db.run(`CREATE TABLE IF NOT EXISTS transactions (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
-        user_id INTEGER NOT NULL,
+        sourceUserId INTEGER NOT NULL,
+        destUserId INTEGER NOT NULL,
         amount REAL NOT NULL,
-        type TEXT NOT NULL,
-        description TEXT,
-        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-        FOREIGN KEY (user_id) REFERENCES users(id)
+        date DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (sourceUserId) REFERENCES users(id),
+        FOREIGN KEY (destUserId) REFERENCES users(id)
     )`);
 });
 

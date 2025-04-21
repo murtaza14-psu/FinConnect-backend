@@ -1,10 +1,33 @@
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
-const bcrypt = require('bcrypt');
+const bcrypt = require('bcryptjs');
 
 const register = async (req, res) => {
     try {
         const { name, email, password } = req.body;
+
+        // Validate input
+        if (!name || !email || !password) {
+            return res.status(400).json({
+                success: false,
+                error: {
+                    message: 'Please provide name, email, and password',
+                    statusCode: 400
+                }
+            });
+        }
+
+        // Validate email format
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email)) {
+            return res.status(400).json({
+                success: false,
+                error: {
+                    message: 'Please provide a valid email address',
+                    statusCode: 400
+                }
+            });
+        }
 
         // Check if user already exists
         const existingUser = await User.findByEmail(email);
@@ -18,12 +41,18 @@ const register = async (req, res) => {
             });
         }
 
-        // Create new user
-        const userId = await User.create({ name, email, password });
+        // Create new user with default role and subscription status
+        const userId = await User.create({ 
+            name, 
+            email, 
+            password,
+            role: 'Developer',
+            subscribed: false
+        });
         
         // Generate JWT token
         const token = jwt.sign(
-            { id: userId, email, role: 'developer' },
+            { id: userId, email, role: 'Developer' },
             process.env.JWT_SECRET,
             { expiresIn: process.env.JWT_EXPIRES_IN }
         );
@@ -35,11 +64,14 @@ const register = async (req, res) => {
                 user: {
                     id: userId,
                     name,
-                    email
+                    email,
+                    role: 'Developer',
+                    subscribed: false
                 }
             }
         });
     } catch (error) {
+        console.error('Registration error:', error);
         res.status(500).json({
             success: false,
             error: {
@@ -94,11 +126,12 @@ const login = async (req, res) => {
                     name: user.name,
                     email: user.email,
                     role: user.role,
-                    subscription_status: user.subscription_status
+                    subscribed: user.subscribed
                 }
             }
         });
     } catch (error) {
+        console.error('Login error:', error);
         res.status(500).json({
             success: false,
             error: {

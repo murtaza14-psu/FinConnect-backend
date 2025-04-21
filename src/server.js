@@ -17,8 +17,9 @@ const limiter = rateLimit({
 });
 app.use(limiter);
 
-// Routes will be added here
-// app.use('/api/auth', require('./routes/auth'));
+// Routes
+app.use('/api/auth', require('./routes/auth'));
+app.use('/api/subscriptions', require('./routes/subscription'));
 // app.use('/api/balance', require('./routes/balance'));
 // app.use('/api/transfer', require('./routes/transfer'));
 // app.use('/api/transactions', require('./routes/transactions'));
